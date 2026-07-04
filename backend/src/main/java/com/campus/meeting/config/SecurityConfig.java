@@ -14,6 +14,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
+                        // 放行 Swagger UI 和相关资源
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         // 放行 /api/v1/** 下的所有请求（开发测试用）
                         .requestMatchers("/api/v1/**").permitAll()
                         // 其他任何请求都需要认证（可后续调整）
