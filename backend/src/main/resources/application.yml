@@ -1,0 +1,6 @@
+# 应用基础配置
+spring:
+  application:
+    name: meeting
+  profiles:
+    active: dev
