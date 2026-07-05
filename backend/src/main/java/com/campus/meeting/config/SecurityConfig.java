@@ -4,6 +4,7 @@ import com.campus.meeting.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -30,6 +31,8 @@ public class SecurityConfig {
 
                 // 2. 配置路径权限
                 .authorizeHttpRequests(authz -> authz
+                        // 放行 OPTIONS 请求（跨域预检）
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // 放行 Swagger 和 认证接口
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/v1/auth/**").permitAll()
                         // 业务接口需要认证（后续可细化角色）
