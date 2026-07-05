@@ -9,7 +9,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* 配置 Vite 别名和 TypeScript 路径映射 */
+    "paths": {
+      "@/*": ["./src/*"]                   // 将 @/* 映射到 src/*
+    },
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

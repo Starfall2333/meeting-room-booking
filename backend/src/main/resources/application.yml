@@ -11,4 +11,4 @@ mybatis:
     map-underscore-to-camel-case: true
   # 如果后续使用 XML 文件，需要指定 mapper-locations
   # mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.youruniversity.meetingroombooking.entity
+  type-aliases-package: com.campus.meeting.entity
