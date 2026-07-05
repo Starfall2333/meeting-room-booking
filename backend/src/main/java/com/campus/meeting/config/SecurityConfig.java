@@ -1,42 +1,54 @@
 package com.campus.meeting.config;
 
+import com.campus.meeting.filter.JwtAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    private JwtAuthenticationEntryPoint unauthorizedHandler;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // 1. 禁用 CSRF（JWT 无状态，不需要）
+                .csrf(csrf -> csrf.disable())
+
+                // 2. 配置路径权限
                 .authorizeHttpRequests(authz -> authz
-                        // 放行 Swagger UI 和相关资源
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-                        // 放行注册登录请求
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        // 会议室相关请求需要认证
+                        // 放行 Swagger 和 认证接口
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/v1/auth/**").permitAll()
+                        // 业务接口需要认证（后续可细化角色）
                         .requestMatchers("/api/v1/rooms/**").authenticated()
-                        // 其他任何请求都需要认证（可后续调整）
+                        // 其他所有请求需要认证
                         .anyRequest().authenticated()
                 )
-                // 禁用 CSRF（开发阶段方便测试 POST 等请求，后续可再开启）
-                .csrf(csrf -> csrf.disable())
-                // 使用默认的表单登录（可选，保留以便后续测试）
-                .formLogin(form -> form
-                        .loginPage("/login")  // 默认
-                        .permitAll()
-                )
-                .httpBasic(httpBasic -> {}); // 支持 Basic Auth（可选）
+
+                // 3. 关键：设置会话为无状态（STATELESS）
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 4. 禁用默认的表单登录和 Basic Auth（因为我们要用 JWT）
+                .formLogin(form -> form.disable())
+                .httpBasic(httpBasic -> httpBasic.disable())
+
+                // 5. 将自定义 JWT 过滤器放在 UsernamePasswordAuthenticationFilter 之前
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // 未认证请求 全局异常处理
+                .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(unauthorizedHandler));
 
         return http.build();
     }
