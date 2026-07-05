@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -20,8 +22,10 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        // 放行 /api/v1/** 下的所有请求（开发测试用）
-                        .requestMatchers("/api/v1/**").permitAll()
+                        // 放行注册登录请求
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        // 会议室相关请求需要认证
+                        .requestMatchers("/api/v1/rooms/**").authenticated()
                         // 其他任何请求都需要认证（可后续调整）
                         .anyRequest().authenticated()
                 )
@@ -35,5 +39,13 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> {}); // 支持 Basic Auth（可选）
 
         return http.build();
+    }
+
+    /**
+     * 密码编码器 Bean，使用 BCrypt 强哈希
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
